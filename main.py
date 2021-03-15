@@ -1,3 +1,5 @@
+from math import log
+
 import numpy as np
 from nltk.corpus import reuters, stopwords
 from nltk.tokenize import word_tokenize
@@ -10,23 +12,26 @@ if __name__ == "__main__":
     nltk.download('reuters')
     nltk.download('punkt')
 
-    doc_ids = list(filter(lambda doc: doc.startswith("training/"), reuters.fileids()))
+    topics = ['BANK', 'FINANCE', 'STOCK', 'DEBT']
     dataset = []
 
-    for index in doc_ids:
+    print(f'\n\n2. Selecting 10 Reuters documents with over 700 words each around topics: {topics}')
+    for index in reuters.fileids():
         raw_document = reuters.raw(index)
         split_document = raw_document.split('\n', 1)
 
         title = split_document[0]
-        content = split_document[1].strip()
-        tokenized = word_tokenize(content)
-        token_words = list(filter(lambda token: token.isalpha(), tokenized))
 
-        if len(token_words) > 700:
-            dataset.append((title, token_words))
+        if any(topic in title.upper() for topic in topics):
+            content = split_document[1].strip()
+            tokenized = word_tokenize(content)
+            token_words = list(filter(lambda token: token.isalpha(), tokenized))
 
-        if len(dataset) >= 10:
-            break
+            if len(token_words) > 700:
+                dataset.append((title, token_words))
+
+            if len(dataset) >= 10:
+                break
 
     porter = PorterStemmer()
 
@@ -51,6 +56,7 @@ if __name__ == "__main__":
 
         stemming_analysis.append((title, document, regular_dict, stemmed_dict))
 
+    print('\n\n3. Document terms and words statistics')
     print(f"{'Title':<50}\t{'Number of words':<20}\t{'Number of distinct words':<30}\t{'Number of distinct terms':<30}")
     for document in stemming_analysis:
         title = document[0]
@@ -60,11 +66,12 @@ if __name__ == "__main__":
 
         print(f"{title:<50}\t{number_of_words:>20}\t{number_of_distinct_words:>30}\t{number_of_distinct_terms:>30}")
 
+    print('\n\n4. Terms occurrences tables')
     for document in stemming_analysis:
         title = document[0]
         terms = document[3]
 
-        print(f'\n\n{title} analysis:')
+        print(f'\n{title} analysis:')
         print(f"{'Term':<20}\t{'Number of occurrences':<25}")
         extracted_stats = [(term, occurrences) for term, occurrences in terms.items()]
         extracted_stats.sort(key=lambda stats: stats[1], reverse=True)
@@ -72,6 +79,7 @@ if __name__ == "__main__":
         for term, occurrences in extracted_stats:
             print(f"{term:<20}\t{occurrences:>25}")
 
+    print('\n\n5. Terms frequency plots')
     for document in stemming_analysis:
         terms = document[3]
         indexes = list(range(len(terms)))
@@ -111,9 +119,49 @@ if __name__ == "__main__":
 
         filtered_dataset.append((document[0], filtered_dict))
 
-    print(f"\n\n{'Stop word':<20}\t{'Number of occurrences':<25}")
+    print('\n\n6. Stop list')
+    print(f"{'Stop word':<20}\t{'Number of occurrences':<25}")
     extracted_stats = [(stop_word, occurrences) for stop_word, occurrences in stop_words_analysis.items()]
     extracted_stats.sort(key=lambda stats: stats[1], reverse=True)
 
     for term, occurrences in extracted_stats:
         print(f"{term:<20}\t{occurrences:>25}")
+
+    unique_terms = set()
+
+    for _, terms in filtered_dataset:
+        unique_terms = unique_terms.union(set(terms.keys()))
+
+    print('\n\n7. Document-term matrix')
+    frequency_matrix = f"{'Document':^55}"
+    for term in unique_terms:
+        frequency_matrix += f"\t{term:^15}"
+
+    frequency_matrix += '\n'
+    for document in filtered_dataset:
+        frequency_matrix += f"{document[0]:<55}"
+
+        for term in unique_terms:
+            frequency_matrix += f"\t{document[1].get(term, 0):>15}"
+
+        frequency_matrix += '\n'
+
+    print(frequency_matrix)
+
+    print('\n\n8. TF-IDF matrix')
+    tf_idf_matrix = f"{'Document':^55}"
+    for term in unique_terms:
+        tf_idf_matrix += f"\t{term:^15}"
+
+    tf_idf_matrix += '\n'
+    for document in filtered_dataset:
+        tf_idf_matrix += f"{document[0]:<55}"
+
+        for term in unique_terms:
+            tf = document[1].get(term, 0) / sum(document[1].values())
+            idf = log(len(filtered_dataset) / sum([1 if term in doc[1] else 0 for doc in filtered_dataset]), 2)
+            tf_idf_matrix += f"\t{tf * idf:>15.4f}"
+
+        tf_idf_matrix += '\n'
+
+    print(tf_idf_matrix)
