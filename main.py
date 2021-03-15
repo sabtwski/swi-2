@@ -72,15 +72,22 @@ if __name__ == "__main__":
         terms = document[3]
 
         print(f'\n{title} analysis:')
-        print(f"{'Term':<20}\t{'Number of occurrences':<25}")
-        extracted_stats = [(term, occurrences) for term, occurrences in terms.items()]
+        print(f"{'Term':<70}\t{'Number of occurrences':<25}")
+        switched_dict = dict()
+        for term, occurrences in terms.items():
+            if occurrences in switched_dict:
+                switched_dict[occurrences] += f", {term}"
+            else:
+                switched_dict[occurrences] = term
+
+        extracted_stats = [(combined_terms, occurrences) for occurrences, combined_terms in switched_dict.items()]
         extracted_stats.sort(key=lambda stats: stats[1], reverse=True)
 
         for term, occurrences in extracted_stats:
-            print(f"{term:<20}\t{occurrences:>25}")
+            print(f"{term:<70}\t{occurrences:>25}")
 
     print('\n\n5. Terms frequency plots')
-    for document in stemming_analysis:
+    for index, document in enumerate(stemming_analysis):
         terms = document[3]
         indexes = list(range(len(terms)))
         x_resolution = 25.0
@@ -88,7 +95,7 @@ if __name__ == "__main__":
         occurrences = [occurrences for _, occurrences in terms.items()]
 
         plt.figure(dpi=200, figsize=(10, 4))
-        plt.title(f"{document[0]} terms occurrences")
+        plt.title(f"5.{index + 1}. {document[0]} terms occurrences")
         plt.xlabel("Term index in occurrences dictionary")
         plt.ylabel("Number of occurrences")
         plt.xticks(np.arange(0, max(indexes) + x_resolution, x_resolution))
@@ -120,12 +127,21 @@ if __name__ == "__main__":
         filtered_dataset.append((document[0], filtered_dict))
 
     print('\n\n6. Stop list')
-    print(f"{'Stop word':<20}\t{'Number of occurrences':<25}")
-    extracted_stats = [(stop_word, occurrences) for stop_word, occurrences in stop_words_analysis.items()]
+    switched_dict = dict()
+    for stop_word, occurrences in stop_words_analysis.items():
+        if occurrences in switched_dict:
+            switched_dict[occurrences] += f", {stop_word}"
+        else:
+            switched_dict[occurrences] = stop_word
+
+    max_length = len(max(switched_dict.values(), key=len)) + 10
+    print(f"{'Stop word':<{max_length}}\t{'Number of occurrences':<25}")
+
+    extracted_stats = [(stop_words, occurrences) for occurrences, stop_words in switched_dict.items()]
     extracted_stats.sort(key=lambda stats: stats[1], reverse=True)
 
     for term, occurrences in extracted_stats:
-        print(f"{term:<20}\t{occurrences:>25}")
+        print(f"{term:<{max_length}}\t{occurrences:>25}")
 
     unique_terms = set()
 
