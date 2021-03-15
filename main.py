@@ -15,6 +15,11 @@ if __name__ == "__main__":
     topics = ['BANK', 'FINANCE', 'STOCK', 'DEBT']
     dataset = []
 
+    '''
+    
+        ZADANIE 2
+        
+    '''
     print(f'\n\n2. Selecting 10 Reuters documents with over 700 words each around topics: {topics}')
     for index in reuters.fileids():
         raw_document = reuters.raw(index)
@@ -33,8 +38,12 @@ if __name__ == "__main__":
             if len(dataset) >= 10:
                 break
 
+    '''
+    
+        ZADANIE 3
+        
+    '''
     porter = PorterStemmer()
-
     stemming_analysis = []
 
     for title, document in dataset:
@@ -66,6 +75,11 @@ if __name__ == "__main__":
 
         print(f"{title:<50}\t{number_of_words:>20}\t{number_of_distinct_words:>30}\t{number_of_distinct_terms:>30}")
 
+    '''
+    
+        ZADANIE 4
+        
+    '''
     print('\n\n4. Terms occurrences tables')
     for document in stemming_analysis:
         title = document[0]
@@ -86,6 +100,11 @@ if __name__ == "__main__":
         for term, occurrences in extracted_stats:
             print(f"{term:<70}\t{occurrences:>25}")
 
+    '''
+
+        ZADANIE 5
+
+    '''
     print('\n\n5. Terms frequency plots')
     for index, document in enumerate(stemming_analysis):
         terms = document[3]
@@ -103,8 +122,12 @@ if __name__ == "__main__":
         plt.scatter(indexes, occurrences, s=5)
         plt.show()
 
-    stop_words = stopwords.words("english")
+    '''
 
+        ZADANIE 6
+
+    '''
+    stop_words = stopwords.words("english")
     stop_words_analysis = dict()
     filtered_dataset = []
 
@@ -143,6 +166,11 @@ if __name__ == "__main__":
     for term, occurrences in extracted_stats:
         print(f"{term:<{max_length}}\t{occurrences:>25}")
 
+    '''
+
+        ZADANIE 7
+
+    '''
     unique_terms = set()
 
     for _, terms in filtered_dataset:
@@ -164,6 +192,11 @@ if __name__ == "__main__":
 
     print(frequency_matrix)
 
+    '''
+
+        ZADANIE 8
+
+    '''
     print('\n\n8. TF-IDF matrix')
     tf_idf_matrix = f"{'Document':^55}"
     for term in unique_terms:
